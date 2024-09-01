@@ -33,14 +33,14 @@ class pyCandapter:
     def readCANMessage(self) -> can.Message:
         message = self.device.read_until(b'\r').decode('utf-8') #This is in the format Tiiilddddddddddddddd\r
         messageID = int(message[1:4], 16)
-        messageLength = int(message[4])
+        messageLength = int(message[4],16)
         messageDataArr = []
         for i in range(messageLength):
             messageDataArr.append(int(message[5 + 2*i :5 + 2*i + 2], 16))
         timeStamp = time.time()
         return (can.Message(arbitration_id=messageID, data=messageDataArr, is_extended_id=False, timestamp=timeStamp))
-
-    def sendCANMessage(self, message):
+    
+    '''def sendCANMessage(self, message):
         dataString = ''
         for i in range(0, len(message.data)):
             messageDataString = str(hex(message.data[i]))[2:]
@@ -54,10 +54,23 @@ class pyCandapter:
         if response != True:
             raise ValueError('Error sending CAN message')
         else:
-            return True
+            return True'''
 
     def closeCANBus(self) -> bool:
         response = self.sendSerialMessage('C')
 
     def closeDevice(self) -> None:
         self.device.close()
+    
+    def Information_from_BMS(self,msg : can.Message):
+        if msg.arbitration_id == 0x0A3:
+            Pack_O_Volt = msg.data[0]
+            print(f"Pack Open Voltage: {Pack_O_Volt}")
+            Pack_Amphrs = msg.data[1]
+            print(f"Pack Amphours: {Pack_Amphrs}")
+            T_Pack_Cycle = msg.data[2]
+            print(f"Total Pack Cycles: {T_Pack_Cycle}")
+            In_S_voltage = msg.data[3]
+            print(f"Input Supply Voltage: {In_S_voltage}")
+    
+                                     
